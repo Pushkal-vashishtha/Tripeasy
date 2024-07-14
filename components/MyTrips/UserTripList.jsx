@@ -1,47 +1,89 @@
-import { View, Text, Image, StyleSheet } from 'react-native';
-import React, { useEffect } from 'react';
-import moment from 'moment';
-import { TouchableOpacity } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
+import moment from "moment";
+import axios from "axios";
+import UserTripCard from "./UserTripCard";
+
+const fetchImage = async (locationName) => {
+  try {
+    const response = await axios.get("https://api.unsplash.com/photos/random", {
+      params: {
+        query: locationName,
+        client_id: "indVtoi5_jJjYNbcgO3S6ee0Ihy8ftmIlckpHegzlVs",
+      },
+    });
+    return response.data.urls.regular;
+  } catch (error) {
+    console.error("Error fetching image from Unsplash:", error);
+    return null;
+  }
+};
 
 export default function UserTripList({ userTrips }) {
+  const [imageUrl, setImageUrl] = useState("");
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    console.log('Rendering UserTripList with userTrips:', userTrips);
+    console.log("Rendering UserTripList with userTrips:", userTrips);
+    if (userTrips && userTrips.length > 0) {
+      const firstTripLocation = JSON.parse(userTrips[0].tripData).locationInfo.name;
+      fetchImage(firstTripLocation)
+        .then(url => {
+          setImageUrl(url);
+          setLoading(false);
+        })
+        .catch(error => {
+          console.error('Error fetching image:', error);
+          setLoading(false);
+        });
+    }
   }, [userTrips]);
 
-  const parsedTrips = userTrips.map(trip => ({
+  if (!userTrips || userTrips.length === 0) {
+    return <Text>No trips available</Text>;
+  }
+
+  // Parse the tripData JSON string for the first trip
+  const firstTrip = {
+    ...userTrips[0],
+    tripData: JSON.parse(userTrips[0].tripData),
+  };
+
+  // Parse the tripData JSON string for the rest of the trips
+  const otherTrips = userTrips.slice(1).map((trip) => ({
     ...trip,
     tripData: JSON.parse(trip.tripData),
   }));
 
   return (
     <View style={styles.container}>
-      {parsedTrips.map((trip, index) => (
-        <View key={index} style={styles.tripCard}>
-          <Image
-            source={require('./../../assets/images/pl.jpg')}
-            style={styles.image}
-          />
+      <ScrollView showsVerticalScrollIndicator={false}>
+        <View style={styles.bigTripCard}>
+          {loading ? (
+            <ActivityIndicator size="large" color="#007AFF" />
+          ) : (
+            <Image source={imageUrl ? { uri: imageUrl } : require('./../../assets/images/pl.jpg')} style={styles.image} />
+          )}
           <View style={styles.infoContainer}>
-            <Text style={styles.location}>🌍 {trip.tripData.locationInfo.name}</Text>
+            <Text style={styles.location}>
+              🌍 {firstTrip.tripData.locationInfo.name}
+            </Text>
             <Text style={styles.dates}>
-              📅 {moment(trip.tripData.startDate).format('MMM Do')} - {moment(trip.tripData.endDate).format('MMM Do, YYYY')}
+              📅 {moment(firstTrip.startDate).format("MMM Do")} -{" "}
+              {moment(firstTrip.endDate).format("MMM Do, YYYY")}
             </Text>
             <Text style={styles.travelers}>
-              🚌 {trip.tripData.traveler.title} - {trip.tripData.traveler.desc}
+              🚌 {firstTrip.tripData.traveler.title} - {firstTrip.tripData.traveler.desc}
             </Text>
+            <TouchableOpacity style={styles.button}>
+              <Text style={styles.buttonText}>See Your Plans</Text>
+            </TouchableOpacity>
           </View>
-
         </View>
-      ))}
-<TouchableOpacity 
-  style={styles.button}
-  onPress={() => {
-    // Handle button press, e.g., navigate to trip details
-    console.log('See plans for trip:', trip.docId);
-  }}
->
-  <Text style={styles.buttonText}>See Your Plans</Text>
-</TouchableOpacity>
+        {otherTrips.map((trip, index) => (
+          <UserTripCard trip={trip} key={index} />
+        ))}
+      </ScrollView>
     </View>
   );
 }
@@ -49,40 +91,54 @@ export default function UserTripList({ userTrips }) {
 const styles = StyleSheet.create({
   container: {
     padding: 16,
-    backgroundColor: '#f0f0f0',
+    backgroundColor: "#f0f0f0",
   },
-  tripCard: {
-    backgroundColor: 'white',
+  bigTripCard: {
+    backgroundColor: "white",
     borderRadius: 15,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: 20,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 4,
     elevation: 3,
   },
   image: {
-    width: '100%',
+    width: "100%",
     height: 200,
-    resizeMode: 'cover',
+    resizeMode: "cover",
   },
   infoContainer: {
     padding: 16,
   },
   location: {
     fontSize: 18,
-    fontWeight: 'bold',
+    fontWeight: "bold",
     marginBottom: 8,
-    color: '#333',
+    color: "#333",
   },
   dates: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
     marginBottom: 4,
   },
   travelers: {
     fontSize: 14,
-    color: '#666',
+    color: "#666",
+    marginBottom: 12,
+  },
+  button: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    alignSelf: "flex-start",
+    marginTop: 8,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
