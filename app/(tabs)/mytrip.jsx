@@ -13,18 +13,23 @@ export default function MyTrip() {
     user&& GetMyTrips()
   },[user])
 
-  const GetMyTrips= async()=>{
-    setLoading(true)
+  const GetMyTrips = async () => {
+    setLoading(true);
     setUserTrips([]);
-    const q=query(collection(db,'UserTrips'),where('userEmail','==',user?.email));
+    const q = query(collection(db, 'UserTrips'), where('userEmail', '==', user?.email));
     const querySnapshot = await getDocs(q);
-
-    querySnapshot.forEach((doc)=>{
-      console.log(doc.id,"=>",doc.data());
-      setUserTrips(prev=>[...prev,doc.data()])
-    })
+  
+    const trips = [];
+    querySnapshot.forEach((doc) => {
+      console.log(doc.id, "=>", doc.data());
+      trips.push(doc.data());
+    });
+  
+    setUserTrips(trips);
+    console.log('Updated userTrips:', trips);
     setLoading(false);
-}
+  };
+  
 
   return (
     <View style={{
@@ -48,7 +53,7 @@ export default function MyTrip() {
       {loading && <ActivityIndicator size={'large'} color={'#000'}/>}
       {userTrips?.length==0 ?
         <StartNewTripCard/>
-        :<UserTripList/>
+        :<UserTripList userTrips={userTrips}/>
       }
       </View>
   );
