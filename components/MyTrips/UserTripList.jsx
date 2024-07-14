@@ -3,25 +3,28 @@ import { View, Text, Image, StyleSheet, TouchableOpacity, ScrollView, ActivityIn
 import moment from "moment";
 import axios from "axios";
 import UserTripCard from "./UserTripCard";
+import { useRouter } from "expo-router";
 
 const fetchImage = async (locationName) => {
+  const clientId = "indVtoi5_jJjYNbcgO3S6ee0Ihy8ftmIlckpHegzlVs"; // Replace with your Unsplash Access Key
   try {
     const response = await axios.get("https://api.unsplash.com/photos/random", {
       params: {
         query: locationName,
-        client_id: "indVtoi5_jJjYNbcgO3S6ee0Ihy8ftmIlckpHegzlVs",
+        client_id: clientId,
       },
     });
     return response.data.urls.regular;
   } catch (error) {
     console.error("Error fetching image from Unsplash:", error);
-    return null;
+    throw error; // Throw the error to handle it in the caller function
   }
 };
 
 export default function UserTripList({ userTrips }) {
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     console.log("Rendering UserTripList with userTrips:", userTrips);
@@ -75,7 +78,8 @@ export default function UserTripList({ userTrips }) {
             <Text style={styles.travelers}>
               🚌 {firstTrip.tripData.traveler.title} - {firstTrip.tripData.traveler.desc}
             </Text>
-            <TouchableOpacity style={styles.button}>
+            <TouchableOpacity style={styles.button}
+              onPress={() => router.push({ pathname: '/trip-detail', params: { trip: JSON.stringify(userTrips[0]) } })}>
               <Text style={styles.buttonText}>See Your Plans</Text>
             </TouchableOpacity>
           </View>
