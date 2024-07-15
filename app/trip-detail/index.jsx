@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
+import { View, Text, Image, StyleSheet, ActivityIndicator, ScrollView } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import axios from 'axios';
 import moment from 'moment/moment';
 import FlightInfo from '../../components/TripDetails/FlightInfo';
 import HotelList from '../../components/TripDetails/HotelList';
+import PlanTrip from '../../components/TripDetails/PlanTrip';
 
 const fetchImage = async (locationName) => {
   const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
@@ -89,7 +90,7 @@ export default function TripDetails() {
   const tripData = JSON.parse(tripDetails.tripData);
 
   return (
-    <View style={styles.container}>
+    <ScrollView style={styles.container}>
       <Image source={imageUrl ? { uri: imageUrl } : require('./../../assets/images/pl.jpg')} style={styles.image} />
       <View style={styles.detailsContainer}>
         <Text style={styles.locationText}>
@@ -104,9 +105,21 @@ export default function TripDetails() {
         </Text>
       </View>
 
-      <FlightInfo flightData={tripDetails?.tripPlan?.flights?.details} />
-      <HotelList hotelList={tripDetails?.tripPlan?.hotels?.options} />
-    </View>
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>✈️ Flights</Text>
+        <FlightInfo flightData={tripDetails?.tripPlan?.flights?.details} />
+      </View>
+
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>🏨 Hotels</Text>
+        <HotelList hotelList={tripDetails?.tripPlan?.hotels?.options} />
+      </View>
+
+      <View style={styles.sectionContainer}>
+        <Text style={styles.sectionTitle}>🌄 Plan Details</Text>
+        <PlanTrip details={tripDetails?.tripPlan?.itinerary} />
+      </View>
+    </ScrollView>
   );
 }
 
@@ -118,7 +131,7 @@ const styles = StyleSheet.create({
   },
   container: {
     flex: 1,
-    padding: 16,
+    backgroundColor: '#fff',
   },
   image: {
     width: '100%',
@@ -127,6 +140,7 @@ const styles = StyleSheet.create({
   },
   detailsContainer: {
     padding: 16,
+    alignItems: 'center',
   },
   locationText: {
     fontSize: 18,
@@ -138,11 +152,22 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#555',
     textAlign: 'center',
+    marginTop: 5,
   },
   travelers: {
     fontSize: 16,
     color: '#555',
     textAlign: 'center',
     marginTop: 5,
+  },
+  sectionContainer: {
+    marginTop: 20,
+    paddingHorizontal: 16,
+  },
+  sectionTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 10,
   },
 });

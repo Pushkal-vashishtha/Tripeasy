@@ -48,28 +48,55 @@ const HotelList = ({ hotelList }) => {
   }
 
   return (
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+    <ScrollView
+      horizontal
+      style={styles.container}
+      showsHorizontalScrollIndicator={false}
+    >
       {hotelList.map((hotel, index) => (
-        <View key={index} style={styles.hotelCard}>
-          <Image source={{ uri: hotelImages[hotel.hotel_name] || 'https://via.placeholder.com/400x300.png?text=Image+Not+Found' }} style={styles.hotelImage} />
+        <TouchableOpacity
+          key={index}
+          style={styles.hotelCard}
+          onPress={() => handlePressHotel(hotel)}
+        >
+          <Image
+            source={{
+              uri:
+                hotelImages[hotel.hotel_name] ||
+                'https://via.placeholder.com/400x300.png?text=Image+Not+Found',
+            }}
+            style={styles.hotelImage}
+          />
           <View style={styles.hotelDetails}>
-            <Text style={styles.hotelName}>{hotel.hotel_name}</Text>
-            <Text style={styles.hotelAddress}>{hotel.hotel_address}</Text>
-            <Text style={styles.hotelDescription}>{hotel.description}</Text>
-            <Text style={styles.hotelPrice}>Price: {hotel.price}</Text>
-            <TouchableOpacity style={styles.bookButton} onPress={() => handleBookHotel(hotel.booking_url)}>
+            <Text style={styles.hotelName} numberOfLines={3}>
+              {hotel.hotel_name}
+            </Text>
+            <Text style={styles.hotelAddress} numberOfLines={2}>
+              {hotel.hotel_address}
+            </Text>
+            <Text style={styles.hotelPrice}>💰 {hotel.price}</Text>
+            <Text style={styles.hotelRating}>{hotel.rating} ⭐ </Text>
+            <TouchableOpacity
+              style={styles.bookButton}
+              onPress={() => handleBookHotel(hotel.booking_url)}
+            >
               <Text style={styles.bookButtonText}>Book Now</Text>
             </TouchableOpacity>
           </View>
-        </View>
+        </TouchableOpacity>
       ))}
     </ScrollView>
   );
 };
 
+const handlePressHotel = (hotel) => {
+  // Handle press action for hotel card, e.g., navigate to hotel details screen
+  console.log('Pressed hotel:', hotel);
+};
+
 const handleBookHotel = (bookingUrl) => {
   // Handle booking logic, e.g., open a web browser or navigate to the booking URL
-  console.log("Booking hotel:", bookingUrl);
+  console.log('Booking hotel:', bookingUrl);
   // Example: window.open(bookingUrl, '_blank'); // For web-based applications
 };
 
@@ -80,7 +107,8 @@ const styles = StyleSheet.create({
   },
   hotelCard: {
     backgroundColor: '#fff',
-    marginBottom: 16,
+    marginRight: 16, // Add margin to separate hotel cards
+    width: windowWidth * 0.7, // Adjust width according to your design needs
     borderRadius: 10,
     shadowColor: '#000',
     shadowOpacity: 0.1,
@@ -91,8 +119,8 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   hotelImage: {
-    width: windowWidth * 0.35, // Adjust the width according to your design needs
-    height: windowWidth * 0.35, // Maintain aspect ratio
+    width: 120, // Adjust the width according to your design needs
+    height: '100%', // Maintain aspect ratio
     resizeMode: 'cover',
   },
   hotelDetails: {
@@ -117,6 +145,12 @@ const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: 'bold',
     color: '#007AFF',
+    marginBottom: 8,
+  },
+  hotelRating: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#d4af37',
     marginBottom: 8,
   },
   bookButton: {

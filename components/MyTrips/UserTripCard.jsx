@@ -4,14 +4,20 @@ import moment from 'moment';
 import axios from 'axios';
 
 const fetchImageUrl = async (query) => {
-  const clientId = 'indVtoi5_jJjYNbcgO3S6ee0Ihy8ftmIlckpHegzlVs'; // Replace with your actual Unsplash Access Key
-  const response = await axios.get('https://api.unsplash.com/photos/random', {
-    params: {
-      query,
-      client_id: clientId,
-    },
-  });
-  return response.data.urls.regular;
+  const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
+  try {
+    const response = await axios.get("https://pixabay.com/api/", {
+      params: {
+        key: apiKey,
+        q: query,
+        image_type: 'photo',
+      },
+    });
+    return response.data.hits[0].largeImageURL;
+  } catch (error) {
+    console.error("Error fetching image from Pixabay:", error);
+    throw error;
+  }
 };
 
 const UserTripCard = ({ trip }) => {
@@ -36,7 +42,7 @@ const UserTripCard = ({ trip }) => {
         const url = await fetchImageUrl(tripData.locationInfo.name);
         setPhotoUrl(url);
       } catch (error) {
-        console.error('Error fetching image from Unsplash:', error);
+        console.error('Error fetching image from Pixabay:', error);
       }
     };
     fetchPhoto();

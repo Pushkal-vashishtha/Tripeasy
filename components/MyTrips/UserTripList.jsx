@@ -6,17 +6,18 @@ import UserTripCard from "./UserTripCard";
 import { useRouter } from "expo-router";
 
 const fetchImage = async (locationName) => {
-  const clientId = "indVtoi5_jJjYNbcgO3S6ee0Ihy8ftmIlckpHegzlVs"; // Replace with your Unsplash Access Key
+  const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
   try {
-    const response = await axios.get("https://api.unsplash.com/photos/random", {
+    const response = await axios.get("https://pixabay.com/api/", {
       params: {
-        query: locationName,
-        client_id: clientId,
+        key: apiKey,
+        q: locationName,
+        image_type: 'photo',
       },
     });
-    return response.data.urls.regular;
+    return response.data.hits[0].largeImageURL;
   } catch (error) {
-    console.error("Error fetching image from Unsplash:", error);
+    console.error("Error fetching image from Pixabay:", error);
     throw error; // Throw the error to handle it in the caller function
   }
 };
