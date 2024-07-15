@@ -85,6 +85,7 @@ export default function UserTripList({ userTrips }) {
             </TouchableOpacity>
           </View>
         </View>
+        
         {otherTrips.map((trip, index) => (
           <UserTripCard trip={trip} key={index} />
         ))}

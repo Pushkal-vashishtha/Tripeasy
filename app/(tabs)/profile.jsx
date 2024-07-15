@@ -1,10 +1,111 @@
-import { View, Text } from 'react-native'
-import React from 'react'
+import React, { useState, useEffect } from 'react';
+import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+import { auth } from './../../configs/firebaseConfig'; // Adjust path based on your project structure
 
-export default function profile() {
+const Profile = () => {
+  const navigation = useNavigation();
+  const [user, setUser] = useState(null);
+
+  useEffect(() => {
+    const unsubscribe = auth.onAuthStateChanged((user) => {
+      if (user) {
+        // User is signed in
+        setUser({
+          fullName: user.displayName,
+          email: user.email,
+          photoURL: user.photoURL
+        });
+      } else {
+        // No user is signed in
+        setUser(null);
+      }
+    });
+
+    return unsubscribe;
+  }, []);
+
+  const handleSignOut = async () => {
+    try {
+      await auth.signOut();
+      navigation.navigate('(auth)/sign-in'); // Navigate to sign-in screen after sign-out
+    } catch (error) {
+      console.error('Error signing out:', error);
+    }
+  };
+
   return (
-    <View>
-      <Text>profile</Text>
+    <View style={styles.container}>
+      <Text style={styles.title}>Profile</Text>
+      {user && (
+        <View style={styles.userIntroContainer}>
+          {user.photoURL ? (
+            <Image source={{ uri: user.photoURL }} style={styles.userImage} />
+          ) : (
+            <Image source={require('./../../assets/images/pl.jpg')} style={styles.userImage} />
+          )}
+          <Text style={styles.userName}>{user.fullName}</Text>
+          <Text style={styles.userEmail}>{user.email}</Text>
+        </View>
+      )}
+      <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
+        <Text style={styles.signOutButtonText}>Sign Out</Text>
+      </TouchableOpacity>
+      <Text style={styles.footer}>Developed by Pushkal Vashishtha</Text>
     </View>
-  )
-}
+  );
+};
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: '#f5f5f5',
+  },
+  title: {
+    fontFamily: 'outfit-bold',
+    fontSize: 35,
+    marginBottom: 20,
+  },
+  userIntroContainer: {
+    alignItems: 'center',
+    marginTop: 30,
+    marginBottom: 30,
+  },
+  userImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    marginBottom: 10,
+  },
+  userName: {
+    fontFamily: 'outfit-bold',
+    fontSize: 20,
+    marginBottom: 5,
+  },
+  userEmail: {
+    fontFamily: 'outfit',
+    fontSize: 16,
+  },
+  signOutButton: {
+    backgroundColor: '#ff6347',
+    paddingVertical: 15,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  signOutButtonText: {
+    color: '#fff',
+    fontFamily: 'outfit-medium',
+    fontSize: 16,
+  },
+  footer: {
+    fontFamily: 'outfit-medium',
+    fontSize: 12,
+    textAlign: 'center',
+    marginTop: 20,
+    color: '#888',
+  },
+});
+
+export default Profile;

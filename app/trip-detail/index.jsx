@@ -124,50 +124,40 @@ export default function TripDetails() {
 }
 
 const styles = StyleSheet.create({
-  centered: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFF',
   },
   image: {
     width: '100%',
-    height: 300,
-    resizeMode: 'cover',
+    height: 200,
   },
   detailsContainer: {
-    padding: 16,
-    alignItems: 'center',
+    padding: 20,
   },
   locationText: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: 'bold',
-    color: '#333',
-    textAlign: 'center',
   },
   dates: {
     fontSize: 16,
     color: '#555',
-    textAlign: 'center',
-    marginTop: 5,
   },
   travelers: {
     fontSize: 16,
     color: '#555',
-    textAlign: 'center',
-    marginTop: 5,
   },
   sectionContainer: {
-    marginTop: 20,
-    paddingHorizontal: 16,
+    padding: 20,
   },
   sectionTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: 'bold',
-    color: '#333',
     marginBottom: 10,
+  },
+  centered: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });
