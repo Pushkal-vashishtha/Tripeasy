@@ -1,24 +1,26 @@
-import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import React, { useState, useEffect } from 'react';
+import { View, Text, Image, StyleSheet, ActivityIndicator } from 'react-native';
 import { useLocalSearchParams, useNavigation } from 'expo-router';
 import axios from 'axios';
 import moment from 'moment/moment';
 import FlightInfo from '../../components/TripDetails/FlightInfo';
+import HotelList from '../../components/TripDetails/HotelList';
 
 const fetchImage = async (locationName) => {
-  const clientId = "indVtoi5_jJjYNbcgO3S6ee0Ihy8ftmIlckpHegzlVs"; // Replace with your Unsplash Access Key
+  const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
   try {
     console.log("Fetching image for location:", locationName);
-    const response = await axios.get("https://api.unsplash.com/photos/random", {
+    const response = await axios.get("https://pixabay.com/api/", {
       params: {
-        query: locationName,
-        client_id: clientId,
+        key: apiKey,
+        q: locationName,
+        image_type: 'photo',
       },
     });
-    console.log("Fetched image URL:", response.data.urls.regular);
-    return response.data.urls.regular;
+    console.log("Fetched image URL:", response.data.hits[0].largeImageURL);
+    return response.data.hits[0].largeImageURL;
   } catch (error) {
-    console.error("Error fetching image from Unsplash:", error);
+    console.error("Error fetching image from Pixabay:", error);
     throw error;
   }
 };
@@ -36,20 +38,14 @@ export default function TripDetails() {
       headerTransparent: true,
       headerTitle: ''
     });
-    console.log(tripDetails?.tripPlan?.flights?.details);
 
     if (trip) {
       try {
-        console.log("Raw trip data:", trip);
         const parsedTrip = JSON.parse(trip);
-        console.log("Parsed trip data:", parsedTrip);
         setTripDetails(parsedTrip);
 
         const tripData = JSON.parse(parsedTrip.tripData);
-        console.log("Parsed tripData:", tripData);
-
         const locationName = tripData?.locationInfo?.name;
-        console.log("Location name:", locationName);
 
         if (locationName) {
           fetchImage(locationName)
@@ -89,21 +85,14 @@ export default function TripDetails() {
       </View>
     );
   }
-  const tripData = JSON.parse(tripDetails.tripData);
 
+  const tripData = JSON.parse(tripDetails.tripData);
 
   return (
     <View style={styles.container}>
       <Image source={imageUrl ? { uri: imageUrl } : require('./../../assets/images/pl.jpg')} style={styles.image} />
-      {/* Add other trip details here */}
-      <View style={{
-        padding:10,
-        marginTop:-30,
-        backgroundColor:'#fff',
-        borderTopLeftRadius:15,
-        borderTopRightRadius:15
-      }}>
-      <Text style={styles.locationText}>
+      <View style={styles.detailsContainer}>
+        <Text style={styles.locationText}>
           {tripDetails.tripPlan?.trip_details?.destination}
         </Text>
         <Text style={styles.dates}>
@@ -116,7 +105,7 @@ export default function TripDetails() {
       </View>
 
       <FlightInfo flightData={tripDetails?.tripPlan?.flights?.details} />
-
+      <HotelList hotelList={tripDetails?.tripPlan?.hotels?.options} />
     </View>
   );
 }
@@ -136,14 +125,14 @@ const styles = StyleSheet.create({
     height: 300,
     resizeMode: 'cover',
   },
+  detailsContainer: {
+    padding: 16,
+  },
   locationText: {
     fontSize: 18,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-  },
-  detailsContainer: {
-    padding: 16,
   },
   dates: {
     fontSize: 16,
@@ -156,5 +145,4 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginTop: 5,
   },
-
 });
