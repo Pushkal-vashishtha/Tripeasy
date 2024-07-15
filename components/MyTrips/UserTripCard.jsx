@@ -4,7 +4,7 @@ import moment from 'moment';
 import axios from 'axios';
 
 const fetchImageUrl = async (query) => {
-  const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
+  const apiKey = ''; // Pixabay API key
   try {
     const response = await axios.get("https://pixabay.com/api/", {
       params: {
