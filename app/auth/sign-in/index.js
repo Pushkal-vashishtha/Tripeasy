@@ -4,8 +4,7 @@ import { useNavigation, useRouter } from 'expo-router';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { signInWithEmailAndPassword,getAuth } from 'firebase/auth';
-import { auth } from '../../../configs/firebaseConfig'; // Correct casing here
-
+import { auth } from './../../../configs/firebaseConfig'
 export default function SignIn() {
   const navigation = useNavigation();
   const router = useRouter();
