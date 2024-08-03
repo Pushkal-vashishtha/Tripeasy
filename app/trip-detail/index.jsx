@@ -26,12 +26,14 @@ const fetchImage = async (locationName) => {
   }
 };
 
+
 export default function TripDetails() {
   const navigation = useNavigation();
-  const { trip } = useLocalSearchParams();
+  const params = useLocalSearchParams();
   const [tripDetails, setTripDetails] = useState(null);
   const [imageUrl, setImageUrl] = useState("");
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     navigation.setOptions({
@@ -40,12 +42,28 @@ export default function TripDetails() {
       headerTitle: ''
     });
 
-    if (trip) {
+    console.log("Received params:", JSON.stringify(params, null, 2));
+
+    if (params.trip) {
       try {
-        const parsedTrip = JSON.parse(trip);
+        let parsedTrip;
+        if (typeof params.trip === 'string') {
+          parsedTrip = JSON.parse(params.trip);
+        } else {
+          parsedTrip = params.trip;
+        }
+        console.log("Parsed trip:", JSON.stringify(parsedTrip, null, 2));
+
         setTripDetails(parsedTrip);
 
-        const tripData = JSON.parse(parsedTrip.tripData);
+        let tripData;
+        if (typeof parsedTrip.tripData === 'string') {
+          tripData = JSON.parse(parsedTrip.tripData);
+        } else {
+          tripData = parsedTrip.tripData;
+        }
+        console.log("Parsed tripData:", JSON.stringify(tripData, null, 2));
+
         const locationName = tripData?.locationInfo?.name;
 
         if (locationName) {
@@ -63,18 +81,27 @@ export default function TripDetails() {
         }
       } catch (error) {
         console.error("Error parsing trip details:", error);
+        setError("Failed to parse trip details");
         setLoading(false);
       }
     } else {
-      console.warn("Trip details are not provided.");
+      setError("Trip details are not provided");
       setLoading(false);
     }
-  }, [trip]);
+  }, [params.trip]);
 
   if (loading) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color="#007AFF" />
+      </View>
+    );
+  }
+
+  if (error) {
+    return (
+      <View style={styles.centered}>
+        <Text>{error}</Text>
       </View>
     );
   }
@@ -87,7 +114,17 @@ export default function TripDetails() {
     );
   }
 
-  const tripData = JSON.parse(tripDetails.tripData);
+  let tripData;
+  try {
+    tripData = typeof tripDetails.tripData === 'string' ? JSON.parse(tripDetails.tripData) : tripDetails.tripData;
+  } catch (error) {
+    console.error("Error parsing tripData:", error);
+    return (
+      <View style={styles.centered}>
+        <Text>Error loading trip data</Text>
+      </View>
+    );
+  }
 
   return (
     <ScrollView style={styles.container}>

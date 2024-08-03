@@ -1,8 +1,11 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, StyleSheet } from 'react-native';
+import { View, Text, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import moment from 'moment';
 import axios from 'axios';
+import { useRouter } from 'expo-router';
 
+
+// Function to fetch image URL from Pixabay
 const fetchImageUrl = async (query) => {
   const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
   try {
@@ -13,94 +16,119 @@ const fetchImageUrl = async (query) => {
         image_type: 'photo',
       },
     });
-    return response.data.hits[0].largeImageURL;
+    return response.data.hits[0]?.largeImageURL || null;
   } catch (error) {
     console.error("Error fetching image from Pixabay:", error);
-    throw error;
+    return null;
   }
 };
 
 const UserTripCard = ({ trip }) => {
   const [photoUrl, setPhotoUrl] = useState(null);
+  const router = useRouter();
 
-  if (!trip || !trip.tripData) {
-    return null; // Render nothing if trip data is invalid
+  if (!trip) {
+    console.error('Trip data is missing');
+    return null;
   }
 
   let tripData;
 
+  // Safely parse tripData
   try {
     tripData = typeof trip.tripData === 'string' ? JSON.parse(trip.tripData) : trip.tripData;
   } catch (error) {
     console.error('Failed to parse trip data:', error);
-    return null; // Render nothing if JSON parsing fails
+    return null;
   }
 
   useEffect(() => {
     const fetchPhoto = async () => {
-      try {
-        const url = await fetchImageUrl(tripData.locationInfo.name);
+      if (tripData?.locationInfo?.name) {
+        const url = await fetchImageUrl(tripData.locationInfo.name.trim());
         setPhotoUrl(url);
-      } catch (error) {
-        console.error('Error fetching image from Pixabay:', error);
       }
     };
     fetchPhoto();
-  }, [tripData.locationInfo.name]);
+  }, [tripData?.locationInfo?.name]);
+
+  const handlePress = () => {
+    console.log("Trip data before navigation:", JSON.stringify(trip, null, 2));
+    router.push({
+      pathname: '/trip-detail',
+      params: { trip: JSON.stringify(trip) }
+    });
+  };
+  
+  if (!tripData || !tripData.locationInfo) {
+    return null;
+  }
 
   return (
-    <View style={styles.cardContainer}>
+    <TouchableOpacity style={styles.cardContainer} onPress={handlePress}>
       <Image
         source={photoUrl ? { uri: photoUrl } : require('./../../assets/images/pl.jpg')}
         style={styles.cardImage}
       />
       <View style={styles.cardInfo}>
         <Text style={styles.cardLocation}>
-          🌍 {tripData.locationInfo.name}
+          🌍 {tripData.locationInfo.name.trim()}
         </Text>
-        <Text style={styles.dates}>
-          📅 {moment(tripData.startDate).format("MMM Do")} - {" "}
-          {moment(tripData.endDate).format("MMM Do, YYYY")}
+        <Text style={styles.cardDate}>
+          📅 {moment(trip.startDate).format('MMM Do YYYY')} - {moment(trip.endDate).format('MMM Do YYYY')}
         </Text>
+        <Text style={styles.cardBudget}>
+          💸 Budget: {tripData.budget}
+        </Text>
+        <TouchableOpacity style={styles.button} onPress={handlePress}>
+          <Text style={styles.buttonText}>See Your Plans</Text>
+        </TouchableOpacity>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   cardContainer: {
-    backgroundColor: "white",
-    borderRadius: 10,
-    overflow: "hidden",
-    marginBottom: 15,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-    flexDirection: "row",
-    alignItems: "center",
-    padding: 10,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: '#fff',
+    marginBottom: 16,
+    elevation: 2,
   },
   cardImage: {
-    width: 80,
-    height: 80,
-    resizeMode: "cover",
-    borderRadius: 10,
+    width: '100%',
+    height: 150,
   },
   cardInfo: {
-    marginLeft: 10,
-    flex: 1,
+    padding: 16,
   },
   cardLocation: {
     fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
+    fontWeight: 'bold',
   },
-  dates: {
+  cardDate: {
     fontSize: 14,
-    color: "#666",
-    marginBottom: 4,
+    color: '#555',
+    marginTop: 4,
+  },
+  cardBudget: {
+    fontSize: 14,
+    color: '#555',
+    marginTop: 4,
+  },
+  button: {
+    backgroundColor: "#007AFF",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 25,
+    alignSelf: "flex-start",
+    marginTop: 8,
+  },
+  buttonText: {
+    color: "white",
+    fontSize: 14,
+    fontWeight: "600",
   },
 });
 
