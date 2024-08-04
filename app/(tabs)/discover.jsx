@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TextInput, TouchableOpacity, Linking } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TextInput, TouchableOpacity } from 'react-native';
 import axios from 'axios';
+import * as WebBrowser from 'expo-web-browser';
+import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 
 const fetchImage = async (locationName) => {
   const apiKey = '44938756-d9d562ffdaf712150c470c59e';
@@ -46,21 +49,6 @@ const fetchPOIFromMapTiler = async (bbox, countryName) => {
   }
 };
 
-const getRandomCountry = (continent) => {
-  const countries = {
-    Africa: ['Egypt', 'Kenya', 'South Africa', 'Morocco', 'Nigeria'],
-    Asia: ['Japan', 'India', 'Thailand', 'Vietnam', 'South Korea'],
-    Europe: ['France', 'Italy', 'Spain', 'Germany', 'Greece'],
-    NorthAmerica: ['Canada', 'Mexico', 'USA', 'Cuba', 'Jamaica'],
-    SouthAmerica: ['Brazil', 'Argentina', 'Peru', 'Colombia', 'Chile'],
-    Australia: ['Australia', 'New Zealand', 'Fiji', 'Papua New Guinea', 'Solomon Islands'],
-    Antarctica: ['Antarctica']
-  };
-
-  const continentCountries = countries[continent];
-  return continentCountries[Math.floor(Math.random() * continentCountries.length)];
-};
-
 const fetchPOIsFromContinents = async () => {
   const bboxes = {
     Africa: ['-18.679253,34.559989,51.414942,37.340738', 'Africa'],
@@ -76,7 +64,8 @@ const fetchPOIsFromContinents = async () => {
     const place = await fetchPOIFromMapTiler(bboxes[continent][0], bboxes[continent][1]);
     if (place) {
       place.continent = continent;
-      place.country = getRandomCountry(continent);
+      const imageUrl = await fetchImage(place.name);
+      place.image = imageUrl;
     }
     return place;
   });
@@ -94,13 +83,7 @@ const Discover = () => {
     const loadTrendingPlaces = async () => {
       try {
         const places = await fetchPOIsFromContinents();
-        const placesWithImages = await Promise.all(
-          places.map(async (place) => {
-            const imageUrl = await fetchImage(place.country);
-            return { ...place, image: imageUrl };
-          })
-        );
-        setTrendingPlaces(placesWithImages);
+        setTrendingPlaces(places);
         setLoading(false);
       } catch (error) {
         console.error("Error loading trending places:", error);
@@ -143,113 +126,111 @@ const Discover = () => {
 
   const handleCardPress = (name) => {
     const wikipediaUrl = `https://en.wikipedia.org/wiki/${name}`;
-    Linking.openURL(wikipediaUrl).catch((err) =>
-      console.error('Failed to open Wikipedia page:', err)
-    );
+    WebBrowser.openBrowserAsync(wikipediaUrl);
   };
 
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#007AFF" />
+        <ActivityIndicator size="large" color="#6C63FF" />
       </View>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Discover Trending Places</Text>
+    <LinearGradient colors={['#4c669f', '#3b5998', '#192f6a']} style={styles.container}>
       <View style={styles.searchContainer}>
         <TextInput
           style={styles.searchInput}
-          placeholder="Search for a place"
+          placeholder="Discover a new place"
+          placeholderTextColor="#A0A0A0"
           value={searchQuery}
           onChangeText={setSearchQuery}
         />
         <TouchableOpacity style={styles.searchButton} onPress={searchNewPlace}>
-          <Text style={styles.searchButtonText}>Search</Text>
+          <Ionicons name="search" size={24} color="#fff" />
         </TouchableOpacity>
-        {searchedPlace && (
-          <TouchableOpacity style={styles.addButton} onPress={addNewPlace}>
-            <Text style={styles.addButtonText}>Add</Text>
-          </TouchableOpacity>
-        )}
       </View>
+      {searchedPlace && (
+        <TouchableOpacity style={styles.addButton} onPress={addNewPlace}>
+          <Text style={styles.addButtonText}>Add to Trending</Text>
+        </TouchableOpacity>
+      )}
       <ScrollView contentContainerStyle={styles.cardsContainer}>
         {trendingPlaces.map((place, index) => (
           <TouchableOpacity
-            key={index}
+            key={`${place.name}-${index}`} // Ensure each key is unique
             style={styles.card}
             onPress={() => handleCardPress(place.name)}
           >
             {place.image ? (
-              <Image source={{ uri: place.image }} style={styles.cardImage} />
+              <Image source={{ uri: `${place.image}?${new Date().getTime()}` }} style={styles.cardImage} />
             ) : (
               <Image source={require('./../../assets/images/pl.jpg')} style={styles.cardImage} />
             )}
-            <View style={styles.cardOverlay}>
+            <LinearGradient
+              colors={['transparent', 'rgba(0,0,0,0.8)']}
+              style={styles.cardOverlay}
+            >
               <Text style={styles.cardName}>{place.name}</Text>
-            </View>
+              <Text style={styles.cardBrief}>{place.brief}</Text>
+              <View style={styles.cardFooter}>
+                <Ionicons name="location" size={16} color="#fff" />
+                <Text style={styles.cardLocation}>{place.country}</Text>
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
         ))}
       </ScrollView>
-    </View>
+    </LinearGradient>
   );
 };
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   centered: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  title: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    textAlign: 'center',
-    marginVertical: 20,
-  },
   searchContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
+    marginTop: 50,
     marginBottom: 20,
-    position: 'relative',
   },
   searchInput: {
     flex: 1,
-    height: 40,
-    borderColor: '#ccc',
+    height: 50,
+    borderColor: '#fff',
     borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    backgroundColor: '#fff',
+    borderRadius: 25,
+    paddingHorizontal: 20,
+    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    color: '#fff',
+    fontSize: 16,
   },
   searchButton: {
     marginLeft: 10,
-    paddingHorizontal: 20,
-    paddingVertical: 10,
-    backgroundColor: '#007AFF',
-    borderRadius: 20,
-  },
-  searchButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
+    padding: 10,
+    backgroundColor: '#6C63FF',
+    borderRadius: 25,
   },
   addButton: {
-    marginLeft: 10,
+    alignSelf: 'center',
+    marginBottom: 20,
     paddingHorizontal: 20,
     paddingVertical: 10,
-    backgroundColor: '#28a745',
+    backgroundColor: '#6C63FF',
     borderRadius: 20,
   },
   addButtonText: {
     color: '#fff',
     fontWeight: 'bold',
+    fontSize: 16,
   },
   cardsContainer: {
     flexDirection: 'row',
@@ -259,36 +240,38 @@ const styles = StyleSheet.create({
   },
   card: {
     width: '48%',
-    height: 200,
-    borderRadius: 10,
+    height: 250,
+    borderRadius: 15,
     overflow: 'hidden',
-    marginBottom: 10,
-    position: 'relative',
-    backgroundColor: '#fff',
-    shadowColor: '#000',
-    shadowOpacity: 0.1,
-    shadowOffset: { width: 0, height: 1 },
-    shadowRadius: 3,
-    elevation: 2,
+    marginBottom: 15,
+    elevation: 4,
   },
   cardImage: {
     width: '100%',
     height: '100%',
-    resizeMode: 'cover',
   },
   cardOverlay: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'flex-end',
     padding: 10,
-    backgroundColor: 'rgba(0,0,0,0.5)',
   },
   cardName: {
     color: '#fff',
+    fontSize: 18,
     fontWeight: 'bold',
-    fontSize: 16,
-    textAlign: 'center',
+  },
+  cardBrief: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  cardFooter: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 10,
+  },
+  cardLocation: {
+    color: '#fff',
+    marginLeft: 5,
   },
 });
 
