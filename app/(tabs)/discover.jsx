@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView } from 'react-native';
+import { View, Text, StyleSheet, Image, ActivityIndicator, ScrollView, TextInput, TouchableOpacity, Linking } from 'react-native';
 import axios from 'axios';
 
 const fetchImage = async (locationName) => {
@@ -87,6 +87,8 @@ const fetchPOIsFromContinents = async () => {
 const Discover = () => {
   const [trendingPlaces, setTrendingPlaces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchedPlace, setSearchedPlace] = useState(null);
 
   useEffect(() => {
     const loadTrendingPlaces = async () => {
@@ -109,6 +111,43 @@ const Discover = () => {
     loadTrendingPlaces();
   }, []);
 
+  const searchNewPlace = async () => {
+    try {
+      const imageUrl = await fetchImage(searchQuery);
+      if (imageUrl) {
+        setSearchedPlace({
+          name: searchQuery,
+          image: imageUrl,
+          country: searchQuery,
+          brief: 'A place you searched for.',
+          continent: 'Unknown',
+        });
+      } else {
+        setSearchedPlace(null);
+      }
+    } catch (error) {
+      console.error("Error searching new place:", error);
+    }
+  };
+
+  const addNewPlace = () => {
+    if (searchedPlace) {
+      setTrendingPlaces((prevPlaces) => {
+        const updatedPlaces = [searchedPlace, ...prevPlaces];
+        return updatedPlaces.slice(0, 20); // Limit to 20 places
+      });
+      setSearchedPlace(null);
+      setSearchQuery('');
+    }
+  };
+
+  const handleCardPress = (name) => {
+    const wikipediaUrl = `https://en.wikipedia.org/wiki/${name}`;
+    Linking.openURL(wikipediaUrl).catch((err) =>
+      console.error('Failed to open Wikipedia page:', err)
+    );
+  };
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -118,24 +157,43 @@ const Discover = () => {
   }
 
   return (
-    <ScrollView style={styles.container}>
+    <View style={styles.container}>
       <Text style={styles.title}>Discover Trending Places</Text>
-      {trendingPlaces.map((place, index) => (
-        <View key={index} style={styles.placeContainer}>
-          {place.image ? (
-            <Image source={{ uri: place.image }} style={styles.image} />
-          ) : (
-            <Image source={require('./../../assets/images/pl.jpg')} style={styles.image} />
-          )}
-          <View style={styles.placeDetails}>
-            <Text style={styles.placeName}>{place.name}</Text>
-            <Text style={styles.placeCountry}>Country: <Text style={styles.bold}>{place.country}</Text></Text>
-            <Text style={styles.placeBrief}><Text style={styles.italic}>{place.brief}</Text></Text>
-            <Text style={styles.placeContinent}>Continent: <Text style={styles.bold}>{place.continent}</Text></Text>
-          </View>
-        </View>
-      ))}
-    </ScrollView>
+      <View style={styles.searchContainer}>
+        <TextInput
+          style={styles.searchInput}
+          placeholder="Search for a place"
+          value={searchQuery}
+          onChangeText={setSearchQuery}
+        />
+        <TouchableOpacity style={styles.searchButton} onPress={searchNewPlace}>
+          <Text style={styles.searchButtonText}>Search</Text>
+        </TouchableOpacity>
+        {searchedPlace && (
+          <TouchableOpacity style={styles.addButton} onPress={addNewPlace}>
+            <Text style={styles.addButtonText}>Add</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+      <ScrollView contentContainerStyle={styles.cardsContainer}>
+        {trendingPlaces.map((place, index) => (
+          <TouchableOpacity
+            key={index}
+            style={styles.card}
+            onPress={() => handleCardPress(place.name)}
+          >
+            {place.image ? (
+              <Image source={{ uri: place.image }} style={styles.cardImage} />
+            ) : (
+              <Image source={require('./../../assets/images/pl.jpg')} style={styles.cardImage} />
+            )}
+            <View style={styles.cardOverlay}>
+              <Text style={styles.cardName}>{place.name}</Text>
+            </View>
+          </TouchableOpacity>
+        ))}
+      </ScrollView>
+    </View>
   );
 };
 
@@ -155,53 +213,82 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     marginVertical: 20,
   },
-  placeContainer: {
+  searchContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
+    paddingHorizontal: 10,
+    marginBottom: 20,
+    position: 'relative',
+  },
+  searchInput: {
+    flex: 1,
+    height: 40,
+    borderColor: '#ccc',
+    borderWidth: 1,
+    borderRadius: 20,
+    paddingHorizontal: 10,
     backgroundColor: '#fff',
-    marginVertical: 10,
-    marginHorizontal: 20,
+  },
+  searchButton: {
+    marginLeft: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#007AFF',
+    borderRadius: 20,
+  },
+  searchButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  addButton: {
+    marginLeft: 10,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    backgroundColor: '#28a745',
+    borderRadius: 20,
+  },
+  addButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+  },
+  cardsContainer: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+    paddingHorizontal: 10,
+  },
+  card: {
+    width: '48%',
+    height: 200,
     borderRadius: 10,
     overflow: 'hidden',
+    marginBottom: 10,
+    position: 'relative',
+    backgroundColor: '#fff',
     shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.2,
-    shadowRadius: 2,
+    shadowOpacity: 0.1,
+    shadowOffset: { width: 0, height: 1 },
+    shadowRadius: 3,
     elevation: 2,
   },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 10,
+  cardImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
   },
-  placeDetails: {
-    flex: 1,
+  cardOverlay: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
     padding: 10,
-    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
   },
-  placeName: {
-    fontSize: 18,
+  cardName: {
+    color: '#fff',
     fontWeight: 'bold',
-  },
-  placeCountry: {
     fontSize: 16,
-    color: '#666',
-    marginTop: 5,
-  },
-  placeBrief: {
-    fontSize: 14,
-    color: '#666',
-    marginTop: 5,
-  },
-  placeContinent: {
-    fontSize: 12,
-    color: '#888',
-    marginTop: 5,
-  },
-  bold: {
-    fontWeight: 'bold',
-  },
-  italic: {
-    fontStyle: 'italic',
+    textAlign: 'center',
   },
 });
 
