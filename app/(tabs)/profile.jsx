@@ -1,23 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useRouter } from 'expo-router';
 import { auth } from './../../configs/firebaseConfig'; // Adjust path based on your project structure
 
 const Profile = () => {
-  const navigation = useNavigation();
+  const router = useRouter();
   const [user, setUser] = useState(null);
 
   useEffect(() => {
     const unsubscribe = auth.onAuthStateChanged((user) => {
       if (user) {
-        // User is signed in
         setUser({
           fullName: user.displayName,
           email: user.email,
           photoURL: user.photoURL
         });
       } else {
-        // No user is signed in
         setUser(null);
       }
     });
@@ -28,7 +26,7 @@ const Profile = () => {
   const handleSignOut = async () => {
     try {
       await auth.signOut();
-      navigation.navigate('(auth)/sign-in'); // Navigate to sign-in screen after sign-out
+      router.push('/auth/sign-up'); // Navigate to sign-up screen after sign-out
     } catch (error) {
       console.error('Error signing out:', error);
     }
