@@ -27,8 +27,7 @@ export default function Login() {
           fontSize: 28,
           fontFamily: 'outfit-bold'
         }}>
-          Ai travel planner
-        </Text>
+Trip Easy ..............        </Text>
         <Text style={{
           fontFamily: 'outfit',
           fontSize: width * 0.04,

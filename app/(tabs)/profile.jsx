@@ -25,7 +25,9 @@ const Profile = () => {
 
   const handleSignOut = async () => {
     try {
+      console.log('Attempting to sign out...');
       await auth.signOut();
+      console.log('Sign-out successful');
       router.push('/auth/sign-up'); // Navigate to sign-up screen after sign-out
     } catch (error) {
       console.error('Error signing out:', error);
