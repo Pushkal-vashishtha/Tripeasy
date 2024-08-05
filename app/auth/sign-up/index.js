@@ -42,7 +42,7 @@ export default function SignUp() {
     >
       <StatusBar translucent backgroundColor="transparent" />
       <ScrollView contentContainerStyle={styles.scrollViewContent}>
-        <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+        <TouchableOpacity style={styles.backButton} onPress={() => router.push('/auth/sign-in')}>
           <Ionicons name="arrow-back-outline" size={30} color="white" />
         </TouchableOpacity>
         
