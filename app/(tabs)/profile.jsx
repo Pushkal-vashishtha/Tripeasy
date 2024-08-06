@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Share } from 'react-native';
 import { useRouter } from 'expo-router';
 import { auth } from './../../configs/firebaseConfig'; // Adjust path based on your project structure
 
@@ -28,9 +28,19 @@ const Profile = () => {
       console.log('Attempting to sign out...');
       await auth.signOut();
       console.log('Sign-out successful');
-      router.push('/auth/sign-up'); // Navigate to sign-up screen after sign-out
+      router.replace('/auth/sign-up'); // Use replace to navigate to sign-up screen
     } catch (error) {
       console.error('Error signing out:', error);
+    }
+  };
+
+  const handleShare = async () => {
+    try {
+      await Share.share({
+        message: 'Check out this amazing app developed by Pushkal Vashishtha! [App Link]',
+      });
+    } catch (error) {
+      console.error('Error sharing the app:', error);
     }
   };
 
@@ -51,6 +61,9 @@ const Profile = () => {
       <TouchableOpacity style={styles.signOutButton} onPress={handleSignOut}>
         <Text style={styles.signOutButtonText}>Sign Out</Text>
       </TouchableOpacity>
+      <TouchableOpacity style={styles.shareButton} onPress={handleShare}>
+        <Text style={styles.shareButtonText}>Share App</Text>
+      </TouchableOpacity>
       <Text style={styles.footer}>Developed by Pushkal Vashishtha</Text>
     </View>
   );
@@ -66,26 +79,43 @@ const styles = StyleSheet.create({
     fontFamily: 'outfit-bold',
     fontSize: 35,
     marginBottom: 20,
+    textAlign: 'center',
+    color: '#333',
   },
   userIntroContainer: {
     alignItems: 'center',
     marginTop: 30,
     marginBottom: 30,
+    padding: 20,
+    backgroundColor: '#fff',
+    borderRadius: 10,
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+    elevation: 5,
   },
   userImage: {
     width: 100,
     height: 100,
     borderRadius: 50,
     marginBottom: 10,
+    borderColor: '#ddd',
+    borderWidth: 2,
   },
   userName: {
     fontFamily: 'outfit-bold',
     fontSize: 20,
     marginBottom: 5,
+    color: '#333',
   },
   userEmail: {
     fontFamily: 'outfit',
     fontSize: 16,
+    color: '#666',
   },
   signOutButton: {
     backgroundColor: '#ff6347',
@@ -95,6 +125,18 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   signOutButtonText: {
+    color: '#fff',
+    fontFamily: 'outfit-medium',
+    fontSize: 16,
+  },
+  shareButton: {
+    backgroundColor: '#4682B4',
+    paddingVertical: 15,
+    borderRadius: 10,
+    marginTop: 20,
+    alignItems: 'center',
+  },
+  shareButtonText: {
     color: '#fff',
     fontFamily: 'outfit-medium',
     fontSize: 16,
