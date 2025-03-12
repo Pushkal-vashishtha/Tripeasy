@@ -21,7 +21,7 @@ const HotelList = ({ hotelList }) => {
   }, [hotelList]);
 
   const fetchImageFromPixabay = async (searchTerm) => {
-    const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
+    const apiKey = ''; // Pixabay API key
     const apiUrl = `https://pixabay.com/api/?key=${apiKey}&q=${encodeURIComponent(searchTerm)}`;
 
     try {
