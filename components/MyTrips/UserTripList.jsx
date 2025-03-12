@@ -6,7 +6,7 @@ import UserTripCard from "./UserTripCard";
 import { useRouter } from "expo-router";
 
 const fetchImage = async (locationName) => {
-  const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
+  const apiKey = ''; // Pixabay API key
   try {
     const response = await axios.get("https://pixabay.com/api/", {
       params: {
