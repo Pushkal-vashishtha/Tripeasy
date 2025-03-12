@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
 const fetchActivityImage = async (activity) => {
-  const apiKey = '44938756-d9d562ffdaf712150c470c59e'; // Pixabay API key
+  const apiKey = ''; // Pixabay API key
   try {
     // Find the index of "visit the " in the activity string
     const visitIndex = activity.toLowerCase().indexOf("visit the ");
